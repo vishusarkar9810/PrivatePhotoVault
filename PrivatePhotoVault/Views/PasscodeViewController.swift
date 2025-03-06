@@ -18,17 +18,23 @@ class PasscodeViewController: UIViewController {
         view.backgroundColor = .white
         setupUI()
         
-        if (try? securityManager.retrievePasscode()) == nil {
-            title = "Set Passcode"
-        } else {
-            title = "Enter Passcode"
+        // Move keychain check to background if needed
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            if (try? self.securityManager.retrievePasscode()) == nil {
+                DispatchQueue.main.async {
+                    self.title = "Set Passcode"
+                }
+            } else {
+                DispatchQueue.main.async {
+                    self.title = "Enter Passcode"
+                }
+            }
         }
         
-        // Force layout to ensure constraints are applied
         view.setNeedsLayout()
         view.layoutIfNeeded()
         
-        // Debug: Check view hierarchy and frame after layout
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             let frame = self.view.frame
@@ -45,8 +51,8 @@ class PasscodeViewController: UIViewController {
         passcodeTextField.placeholder = "Enter 4-digit passcode"
         passcodeTextField.keyboardType = .numberPad
         passcodeTextField.isSecureTextEntry = true
-        passcodeTextField.borderStyle = .roundedRect // Visible border
-        passcodeTextField.backgroundColor = .systemGray6 // Light background for visibility
+        passcodeTextField.borderStyle = .roundedRect
+        passcodeTextField.backgroundColor = .systemGray6
         passcodeTextField.translatesAutoresizingMaskIntoConstraints = false
         
         submitButton.setTitle("Submit", for: .normal)
@@ -70,7 +76,6 @@ class PasscodeViewController: UIViewController {
             submitButton.heightAnchor.constraint(equalToConstant: 40)
         ])
         
-        // Debug: Verify subviews are added
         print("PasscodeViewController: Subviews added: \(view.subviews.count)")
     }
     
